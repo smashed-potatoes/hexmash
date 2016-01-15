@@ -4,7 +4,7 @@
     <title>Hexmash</title>
     <style type="text/css">
         body {
-            font-family: monospace;
+            font-family: sans-serif;
         }
 
         #site {
@@ -13,32 +13,59 @@
         }
 
         #toolbar {
-            display: none;
-            width: 781px;
             height: 60px;
+            padding: 0 20px;
             
             background: #fff;
             border: 2px solid #d9d9d9;
             box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.12);
             border-radius: 5px;
+
+            color: #666;
+            line-height: 60px;
+
+            vertical-align: middle;
+        }
+
+        #toolbar #file_info {
+            float: left;
+        }
+
+        #toolbar #tool_open {
+            float: right;
+            
+            width: 26px;
+            height: 31px;
+            margin: 14px 0;
+            
+            background-image: url('images/drop_icon_tool.png');
+
+            cursor: pointer;
         }
 
         #dropzone {
-            width: 777px;
             height: 265px;
-
             margin-top:25px;
+
+            overflow: hidden;
             
             background-color: #fafafa;
             border: 4px dashed #e9e9e9;
             border-radius: 10px;
 
+            color: #aaa;
             font-size: 12px;
             text-align: center;
             vertical-align: middle;
 
-            color: #aaa;
-            font-family: sans-serif;
+            transition:         height 0.75s;
+            -moz-transition:    height 0.75s;
+            -webkit-transition: height 0.75s;
+            -o-transition:      height 0.75s;
+        }
+
+        #dropzone.collapsed {
+            height: 0px;
         }
 
         #dropzone div {
@@ -46,9 +73,9 @@
         }
 
         #dropzone #drop_icon {
-            margin: 25px auto;
             width: 100px;
             height: 118px;
+            margin: 25px auto;
 
             background-image: url('images/drop_icon.png');
         }
@@ -67,6 +94,7 @@
         }
 
         #content {
+            font-family: monospace;
             margin-top:25px;
         }
 
@@ -93,11 +121,17 @@
             padding: 0 12px;
         }
 
+        .file_info {
+            color:#5F0FB1;
+            font-family: monospace;
+        }
+
         .header {
-            color: #5F0FB1;
+            padding-bottom: 10px;
 
             background-color: #fff;
-            padding-bottom: 10px;
+
+            color: #5F0FB1;
             text-align: center;
         }
 
@@ -109,6 +143,14 @@
 <body>
     <div id="site">
         <div id="toolbar">
+            <div id="file_info">
+                File: <span id="file_name" class="file_info">None</span>
+                Size: <span id="file_size" class="file_info">0</span> 
+                <span class="file_info">B</span>
+            </div>
+            <div id="file_controls">
+                <div id="tool_open"></div>
+            </div>
         </div>
 
         <div id="dropzone">
@@ -142,18 +184,27 @@
     </div>
 </body>
 <script type="text/javascript">
+
+    // Toolbar elements
+    var filenameDiv = document.getElementById('file_name');
+    var filesizeDiv = document.getElementById('file_size');
+    var openTool = document.getElementById('tool_open');
+
+    // File loading elements
     var fileBrowser = document.getElementById('file_browse');
     var targetDiv = document.getElementById('dropzone');
 
+    // Viwer elements
     var offsetValue = document.getElementById('offset_value');
     var hexValue = document.getElementById('hex_value');
     var rawValue = document.getElementById('raw_value');
 
+    // Hookup tools
+    openTool.addEventListener("click", showHideDropzone, false);
+
     // Hookup drag and drop
-    targetDiv.addEventListener("dragenter", preventDefault, false);
-    targetDiv.addEventListener("dragexit", preventDefault, false);
-    targetDiv.addEventListener("dragover", preventDefault, false);
-    targetDiv.addEventListener("drop", onDrop, false);
+    makeDropable(targetDiv);
+    makeDropable(openTool);
 
     // Hookup the browser and  link using the hidden file browser
     fileBrowser.addEventListener("change", onFileChange, false);
@@ -164,11 +215,19 @@
     // Setup the reader
     var reader = new FileReader()
 
+    /*
+    * File reader progress event
+    */
     reader.onprogress = function (evt) {
         var progress = evt.loaded / evt.total;
         // TODO: Show progress
+        console.log(progress);
     }
 
+    /*
+    * File reader load event - this is where the core of the loading into the 
+    * viewer is handled
+    */
     reader.onload  = function (evt) {
         var resultBuffer = evt.target.result;
 
@@ -183,6 +242,7 @@
         {
             if (b % 16 == 0)
             {
+                // Add a new row to each section every 16 bytes
                 var offsetBreak = document.createElement("br");
                 offsetHolder.appendChild(offsetBreak);
                 var offset = String(b);
@@ -205,6 +265,7 @@
             }
             else if (b % 8 == 0)
             {
+                // Add a double space to the hex and raw half way through each row (8 bytes)
                 var secondSpacer = document.createElement("span");
                 secondSpacer.innerHTML = "&nbsp;&nbsp;"
                 hexHolder.appendChild(secondSpacer);
@@ -214,6 +275,7 @@
                 rawHolder.appendChild(rawSpacer);
             }
             else {
+                // Add a simple spacer when not adding a new row or double space
                 var hexSpacer = document.createElement("span");
                 hexSpacer.innerHTML = "&nbsp;"
                 hexHolder.appendChild(hexSpacer);
@@ -245,12 +307,16 @@
             rawHolder.appendChild(rawSpan);
         }
 
+        // Append the fragments to their respective divs
         document.getElementById('offset_value').appendChild(offsetHolder);
         document.getElementById('hex_value').appendChild(hexHolder);
         document.getElementById('raw_value').appendChild(rawHolder);
     }
     
 
+    /*
+    * File browser change event, currently only load the first file selected
+    */
     function onFileChange(evt) {
         var files = evt.target.files;
         var fileCount = files.length;
@@ -261,6 +327,9 @@
         }   
     }
     
+    /*
+    * Drop event that get's the files passed in, currently only loads the first file
+    */
     function onDrop(evt) {
         var files = evt.dataTransfer.files;
         var fileCount = files.length;
@@ -274,15 +343,51 @@
         preventDefault(evt);
     }
 
+    /*
+    * Helper function to prevent default browser action and stop propagation
+    */
     function preventDefault(evt) {
         evt.stopPropagation();
         evt.preventDefault();
     }
 
+    /**
+    * Helper function to make element dropable - both the tool icon and the drop zone can
+    * have files dropped on them
+    */
+    function makeDropable(element) {
+        element.addEventListener("dragenter", preventDefault, false);
+        element.addEventListener("dragexit", preventDefault, false);
+        element.addEventListener("dragover", preventDefault, false);
+        element.addEventListener("drop", onDrop, false);
+    }
+
+    /**
+    * Collapse/expand the dropzone
+    */
+    function showHideDropzone(evt) {
+        if (targetDiv.classList.contains('collapsed')) {
+            targetDiv.classList.remove('collapsed');
+        }
+        else {
+            targetDiv.classList.add('collapsed');
+        }
+        
+    }
+
+    /**
+    * Initiate the loading of a file 
+    */
     function loadFile(file) {
+        targetDiv.classList.add('collapsed');
+
         offsetValue.innerHTML = "";
         hexValue.innerHTML = "";
         rawValue.innerHTML = "";
+
+        filenameDiv.innerHTML = file.name;
+        filesizeDiv.innerHTML = file.size;
+        console.log("loading: " + file.name)
 
         reader.readAsArrayBuffer(file);
     }
