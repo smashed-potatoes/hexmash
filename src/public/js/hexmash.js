@@ -61,26 +61,44 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
 Hexmash.prototype.byteHover = function(evt) {
     var target = evt.target;
     var row = null;
-    var columnWidth = null;
 
     // Get the row number from the ID if a hex or raw row are the target
     if (target.classList.contains('hex_row')) {
-        row = target.id.replace('hex', '');
-        columnWidth = this.viewerItems.hexValue.offsetWidth / 16;
+        row = parseInt(target.id.replace('hex', ''));
     }
     else if (target.classList.contains('raw_row')) {
-        row = target.id.replace('raw', '');
-        columnWidth = this.viewerItems.rawValue.offsetWidth / 16;
+        row = parseInt(target.id.replace('raw', ''));
     }
 
-    if (row !== null && columnWidth !== null) {
-        var column = Math.floor(evt.offsetX / columnWidth);
-        var hexRow = document.getElementById('hex' + row);
-        var rawRow = document.getElementById('raw' + row);
+    if (row !== null) {
+        // Calculate the offset - evt.offsetX doesn't appear to be reliable in chrome
+        var pointerOffsetX = evt.clientX - target.offsetLeft;
 
-        // Highlight both the corresponding hex and text for the byte
-        this.highlightByte(hexRow, column, 2, this.currentHexHighlight, 'hex_cell_highlighted');
-        this.highlightByte(rawRow, column, 1, this.currentRawHighlight, 'raw_cell_highlighted');
+        // Get the target character in the row
+        var rowCharacterCount = target.textContent.length;
+        var columnCharacterCount = rowCharacterCount / 16;
+        var characterWidth = target.offsetWidth / rowCharacterCount;
+
+        var targetCharacter =  Math.floor(pointerOffsetX / characterWidth);
+
+        /* Ignore spacing characters (at the end of the column for the first half of the row
+        *  and beginning of the column for the second)
+        *  e.g. 3 characters for hex:
+        *       the first half  - "ff ", skip the space at index 2
+        *       the second half - " ff", skip the space at index 0
+        */
+        if ((targetCharacter < rowCharacterCount / 2 && (targetCharacter +  1) % columnCharacterCount !== 0) 
+            ||(targetCharacter > rowCharacterCount / 2 && targetCharacter % columnCharacterCount !== 0)) {
+            var column = Math.floor(targetCharacter / columnCharacterCount);
+
+            var hexRow = document.getElementById('hex' + row);
+            var rawRow = document.getElementById('raw' + row);
+
+            // Highlight both the corresponding hex and text for the byte
+            this.highlightByte(hexRow, column, 2, this.currentHexHighlight, 'hex_cell_highlighted');
+            this.highlightByte(rawRow, column, 1, this.currentRawHighlight, 'raw_cell_highlighted');
+            this.updateOffsetStatus(row + column);
+        }
     }
 };
 
@@ -113,6 +131,13 @@ Hexmash.prototype.highlightByte = function(row, column, byteWidth, tracker, high
 };
 
 /*
+* Display offset of the hilighted byte in the toolbar
+*/
+Hexmash.prototype.updateOffsetStatus = function(offset) {
+    this.toolbarItems.offset.innerHTML = offset;
+};
+
+/*
 * File reader progress event
 */
 Hexmash.prototype.readerProgress = function(evt) {
@@ -129,7 +154,7 @@ Hexmash.prototype.readerLoaded = function(evt) {
     this.currentLoadOffset = 0;
     this.loadBuffer(this.buffer, 0, this.chunkSize);
 
-    if (window.scrollY < this.dropzoneScrollOffset) window.scrollTo(window.scrollX, this.dropzoneScrollOffset + 1);
+    window.scrollTo(window.scrollX, this.dropzoneScrollOffset + 1);
 }
 
 /*

@@ -12,6 +12,7 @@
                     File: <span id="file_name" class="file_info">None</span>
                     Size: <span id="file_size" class="file_info">0</span> 
                     <span class="file_info">B</span>
+                    Offset: <span id="status_offset" class="file_info"></span>
                 </div>
                 <div id="file_controls">
                     <div id="tool_open"></div>
@@ -56,6 +57,7 @@
     var toolbarItems = {};
     toolbarItems.filenameDiv = document.getElementById('file_name');
     toolbarItems.filesizeDiv = document.getElementById('file_size');
+    toolbarItems.offset = document.getElementById('status_offset');
     toolbarItems.openTool = document.getElementById('tool_open');
 
     // File loading elements
