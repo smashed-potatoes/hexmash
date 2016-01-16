@@ -140,11 +140,11 @@ Hexmash.prototype.loadBuffer = function(buffer, startOffset, length) {
     var hexHolder = document.createDocumentFragment();
     var rawHolder = document.createDocumentFragment();
 
-    var byteCount = (startOffset + length < bytes.length) ? startOffset + length : bytes.length - startOffset;
+    var endOffset = (startOffset + length < bytes.length) ? startOffset + length : bytes.length;
 
     var hexRowString = "";
     var rawRowString = "";
-    for (var b=startOffset; b<byteCount; b++)
+    for (var b=startOffset; b<endOffset; b++)
     {
         if (b % 16 == 0)
         {
@@ -185,7 +185,7 @@ Hexmash.prototype.loadBuffer = function(buffer, startOffset, length) {
         rawRowString += text;
 
         // Handle last row that may be partial
-        if (b == (byteCount - 1)) {
+        if (b == (endOffset - 1)) {
             this.addRow(b, hexRowString, rawRowString, offsetHolder, hexHolder, rawHolder);
         }
     }
