@@ -10,6 +10,20 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
     this.makeDropable(this.loadingItems.targetDiv);
     this.makeDropable(this.toolbarItems.openTool);
 
+    // Hookup the hovering
+    this.currentHexHighlight = {
+        row: null,
+        column: null,
+        originalHtml: null
+    };
+    this.currentRawHighlight = {
+        row: null,
+        column: null,
+        originalHtml: null
+    };
+    this.viewerItems.hexValue.addEventListener("mousemove", this.byteHover.bind(this));
+    this.viewerItems.rawValue.addEventListener("mousemove", this.byteHover.bind(this));
+
     // Hookup the browser and  link using the hidden file browser
     this.loadingItems.fileBrowser.addEventListener("change", this.onFileChange.bind(this), false);
     this.loadingItems.browseLink.addEventListener("click", this.loadingItems.fileBrowser.click.bind(this.loadingItems.fileBrowser), false);
@@ -19,6 +33,63 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
     this.reader.onload = this.readerLoaded.bind(this);
     this.reader.onprogress = this.readerProgress.bind(this);
 }
+
+/*
+* Handle hovering over either the hex or the raw output of a byte
+*/
+Hexmash.prototype.byteHover = function(evt) {
+    var target = evt.target;
+    var row = null;
+    var columnWidth = null;
+
+    // Get the row number from the ID if a hex or raw row are the target
+    if (target.classList.contains('hex_row')) {
+        row = target.id.replace('hex', '');
+        columnWidth = this.viewerItems.hexValue.offsetWidth / 16;
+    }
+    else if (target.classList.contains('raw_row')) {
+        row = target.id.replace('raw', '');
+        columnWidth = this.viewerItems.rawValue.offsetWidth / 16;
+    }
+
+    if (row !== null && columnWidth !== null) {
+        var column = Math.floor(evt.offsetX / columnWidth);
+        var hexRow = document.getElementById('hex' + row);
+        var rawRow = document.getElementById('raw' + row);
+
+        // Highlight both the corresponding hex and text for the byte
+        this.highlightByte(hexRow, column, 2, this.currentHexHighlight, 'hex_cell_highlighted');
+        this.highlightByte(rawRow, column, 1, this.currentRawHighlight, 'raw_cell_highlighted');
+    }
+};
+
+
+/*
+* Highlight either the hex or the raw output of a byte
+*/
+Hexmash.prototype.highlightByte = function(row, column, byteWidth, tracker, highlightClass) {
+    // Get the position of the text
+    var offsetStart = column * (byteWidth + 1);
+    if (column > 7) offsetStart++; // Handle double space divider
+    var offsetEnd = offsetStart + byteWidth;
+
+    // Clear the previous
+    if (tracker.row !== null) {
+        tracker.row.innerHTML = tracker.originalHtml;
+    }
+
+    // The highlighting is done by wrapping the bytes characteres in a span
+    var originalHtml = row.textContent;
+    var updatedHtml = originalHtml.substring(0, offsetStart);
+    updatedHtml += '<span class="' + highlightClass + '">' + originalHtml.substring(offsetStart, offsetEnd);
+    updatedHtml += '</span>' + originalHtml.substring(offsetEnd);
+    row.innerHTML = updatedHtml;
+
+    // Track the highlighting information
+    tracker.row = row;
+    tracker.column = column;
+    tracker.originalHtml = originalHtml;
+};
 
 /*
 * File reader progress event
@@ -126,6 +197,7 @@ Hexmash.prototype.addRow = function(offset, hexRowString, rawRowString, offsetHo
     var hexRowSpan = document.createElement("span");
     hexRowSpan.id = "hex" + rowStart;
     hexRowSpan.innerHTML = hexRowString;
+    hexRowSpan.className = 'hex_row';
     var hexBreak = document.createElement("br");
     hexHolder.appendChild(hexRowSpan);
     hexHolder.appendChild(hexBreak);
@@ -133,6 +205,7 @@ Hexmash.prototype.addRow = function(offset, hexRowString, rawRowString, offsetHo
     var rawRowSpan = document.createElement("span");
     rawRowSpan.id = "raw" + rowStart;
     rawRowSpan.innerHTML = rawRowString;
+    rawRowSpan.className = 'raw_row';
     var rawBreak = document.createElement("br");
     rawHolder.appendChild(rawRowSpan);
     rawHolder.appendChild(rawBreak);

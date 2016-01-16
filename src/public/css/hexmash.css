@@ -111,6 +111,7 @@ body {
 
 #hex_value {
     padding: 0 12px;
+    cursor: pointer;
 }
 
 #raw {
@@ -119,6 +120,7 @@ body {
 
 #raw_value {
     padding: 0 12px;
+    cursor: pointer;
 }
 
 .file_info {
@@ -137,4 +139,13 @@ body {
 
 .column {
     float: left;
+}
+
+.hex_row:hover, .raw_row:hover {
+    background-color: #E4D6FF;
+}
+
+.hex_cell_highlighted, .raw_cell_highlighted {
+    background-color: #5F0FB1;
+    color:#fff;
 }
