@@ -217,6 +217,10 @@ Hexmash.prototype.loadBuffer = function(buffer, startOffset, length) {
         {
             text = ".";
         }
+        else if (bytes[b] == 32){
+            // Need to encode space for cases where it is leading (' &nbsp;' is displayed as a single space)
+            text = "&nbsp;";
+        }
         rawRowString += text;
 
         // Handle last row that may be partial
