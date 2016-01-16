@@ -47,73 +47,77 @@ Hexmash.prototype.loadBuffer = function(buffer) {
     var rawHolder = document.createDocumentFragment();
 
     var byteCount = bytes.length;
+
+    var hexRowString = "";
+    var rawRowString = "";
     for (var b=0; b<byteCount; b++)
     {
         if (b % 16 == 0)
         {
-            // Add a new row to each section every 16 bytes
-            var offsetBreak = document.createElement("br");
-            offsetHolder.appendChild(offsetBreak);
-            var offset = String(b);
-            while (offset.length < 9) {
-                if (offset.length == 4) {
-                    offset = " " + offset;
+            if (b != 0) {
+                var rowStart = b - 16;
+
+                // Add a new row to each section every 16 bytes
+                var offsetBreak = document.createElement("br");
+                var offset = String(rowStart);
+                while (offset.length < 9) {
+                    if (offset.length == 4) {
+                        offset = " " + offset;
+                    }
+                    offset = "0" + offset;
                 }
-                offset = "0" + offset;
+                var offsetSpan = document.createElement("span");
+                offsetSpan.innerHTML = offset;
+                offsetHolder.appendChild(offsetSpan);
+                offsetHolder.appendChild(offsetBreak);
+
+
+                var hexRowSpan = document.createElement("span");
+                hexRowSpan.id = "hex" + rowStart;
+                hexRowSpan.innerHTML = hexRowString;
+                var hexBreak = document.createElement("br");
+                hexHolder.appendChild(hexRowSpan);
+                hexHolder.appendChild(hexBreak);
+
+                var rawRowSpan = document.createElement("span");
+                rawRowSpan.id = "raw" + rowStart;
+                rawRowSpan.innerHTML = rawRowString;
+                var rawBreak = document.createElement("br");
+                rawHolder.appendChild(rawRowSpan);
+                rawHolder.appendChild(rawBreak);
+
+                hexRowString = "";
+                rawRowString = "";
             }
-            var offsetSpan = document.createElement("span");
-            offsetSpan.innerHTML = offset;
-            offsetHolder.appendChild(offsetSpan);
-
-
-            var hexBreak = document.createElement("br");
-            hexHolder.appendChild(hexBreak);
-
-            var rawBreak = document.createElement("br");
-            rawHolder.appendChild(rawBreak);
         }
         else if (b % 8 == 0)
         {
             // Add a double space to the hex and raw half way through each row (8 bytes)
-            var secondSpacer = document.createElement("span");
-            secondSpacer.innerHTML = "&nbsp;&nbsp;"
-            hexHolder.appendChild(secondSpacer);
-
-            var rawSpacer = document.createElement("span");
-            rawSpacer.innerHTML = "&nbsp;&nbsp;"
-            rawHolder.appendChild(rawSpacer);
+            hexRowString += "&nbsp;&nbsp;";
+            rawRowString += "&nbsp;&nbsp;";
         }
         else {
             // Add a simple spacer when not adding a new row or double space
-            var hexSpacer = document.createElement("span");
-            hexSpacer.innerHTML = "&nbsp;"
-            hexHolder.appendChild(hexSpacer);
-
-            var rawSpacer = document.createElement("span");
-            rawSpacer.innerHTML = "&nbsp;"
-            rawHolder.appendChild(rawSpacer);
+            hexRowString += "&nbsp;"
+            rawRowString += "&nbsp;"
         }
 
         // Append hex
-        var hexSpan = document.createElement("span");
         var hex = bytes[b].toString(16);
         if (hex.length == 1)
         {
             hex = "0" + hex;
         }
-        hexSpan.innerHTML = hex;
-        hexHolder.appendChild(hexSpan);
+        hexRowString += hex;
 
         // Append text
-        var rawSpan = document.createElement("span");
         var text = String.fromCharCode(bytes[b]);
         // Only include displayable characters
         if (bytes[b] < 32 || bytes[b] > 126)
         {
             text = ".";
         }
-        rawSpan.innerHTML = text;
-        rawHolder.appendChild(rawSpan);
+        rawRowString += text;
     }
 
     // Append the fragments to their respective divs
