@@ -10,6 +10,7 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
 
     // Hookup tools
     this.toolbarItems.openTool.addEventListener("click", this.loadingItems.fileBrowser.click.bind(this.loadingItems.fileBrowser), false);
+    this.toolbarItems.topTool.addEventListener("click", this.scrollToTop.bind(this), false);
 
     // Hookup drag and drop
     this.makeDropable(this.loadingItems.dropzoneDiv);
@@ -363,3 +364,9 @@ Hexmash.prototype.loadFile = function(file) {
     this.reader.readAsArrayBuffer(file);
 };
 
+/**
+* Scroll to the top of the page
+*/
+Hexmash.prototype.scrollToTop = function() {
+    window.scrollTo(window.scrollX, 0);
+}

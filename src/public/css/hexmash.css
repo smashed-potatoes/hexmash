@@ -24,9 +24,18 @@ body {
     border-radius: 5px;
 
     color: #666;
+    font-size: 14px;
     line-height: 60px;
 
     vertical-align: middle;
+}
+
+#file_controls, #file_controls div {
+    float: left;
+}
+
+#toolbar #file_controls div {
+    margin-right: 10px;
 }
 
 #toolbar #file_info {
@@ -34,19 +43,20 @@ body {
 }
 
 #toolbar #tool_open {
-    float: right;
+    width: 40px;
+    height: 33px;
+    margin: 13px 0;
     
-    width: 26px;
-    height: 31px;
-    margin: 14px 0;
-    
-    background-image: url('../images/drop_icon_tool.png');
-
-    cursor: pointer;
+    background-image: url('../images/open_icon.png');
 }
 
-#toolbar #tool_open:hover {
-    opacity: 0.5;
+#toolbar #tool_top {
+    float: right;
+    width: 17px;
+    height: 26px;
+    margin: 17px 0;
+    
+    background-image: url('../images/top_icon.png');
 }
 
 #dropzone {
@@ -133,6 +143,14 @@ body {
 #more {
     text-align: center;
     display: none;
+}
+
+.tool {
+    cursor: pointer;
+}
+
+.tool:hover {
+    opacity: 0.5;
 }
 
 .file_info {

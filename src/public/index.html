@@ -8,15 +8,16 @@
     <div id="site">
         <div id="header">
             <div id="toolbar">
+                <div id="file_controls">
+                    <div id="tool_open" class="tool" title="Open"></div>
+                </div>
                 <div id="file_info">
                     File: <span id="file_name" class="file_info">None</span>
                     Size: <span id="file_size" class="file_info">0</span> 
                     <span class="file_info">B</span>
                     Offset: <span id="status_offset" class="file_info"></span>
                 </div>
-                <div id="file_controls">
-                    <div id="tool_open"></div>
-                </div>
+                <div id="tool_top" class="tool" title="Back to the top"></div>
             </div>
         </div>
 
@@ -59,6 +60,7 @@
     toolbarItems.filesizeDiv = document.getElementById('file_size');
     toolbarItems.offset = document.getElementById('status_offset');
     toolbarItems.openTool = document.getElementById('tool_open');
+    toolbarItems.topTool = document.getElementById('tool_top');
 
     // File loading elements
     var loadingItems = {};
