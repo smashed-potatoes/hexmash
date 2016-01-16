@@ -1,4 +1,8 @@
 function Hexmash (toolbarItems, loadingItems, viewerItems) {
+    this.buffer = null;     // The file buffer
+    this.chunkSize = 10240; // The number of bytes to load into the viewer at a time
+    this.currentLoadOffset = 0;
+
     this.toolbarItems = toolbarItems;
     this.loadingItems = loadingItems;
     this.viewerItems  = viewerItems;
@@ -24,9 +28,19 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
     this.viewerItems.hexValue.addEventListener("mousemove", this.byteHover.bind(this));
     this.viewerItems.rawValue.addEventListener("mousemove", this.byteHover.bind(this));
 
-    // Hookup the browser and  link using the hidden file browser
+    // Hookup the browser and link using the hidden file browser
     this.loadingItems.fileBrowser.addEventListener("change", this.onFileChange.bind(this), false);
     this.loadingItems.browseLink.addEventListener("click", this.loadingItems.fileBrowser.click.bind(this.loadingItems.fileBrowser), false);
+
+    // Hookup the continue loading link and continuous loading
+    this.viewerItems.continueLink.addEventListener("click", this.continueLoading.bind(this));
+    document.addEventListener("scroll", function(evt) {
+        // If there is more to load and the user is 1 screen away from the bottom, start loading the next chunk
+        if (this.buffer !== null && document.body.scrollHeight - window.scrollY < window.innerHeight * 2 
+            && this.currentLoadOffset < this.buffer.byteLength) {
+            this.continueLoading();
+        }
+    }.bind(this));
 
     // Setup the reader
     this.reader = new FileReader()
@@ -104,24 +118,33 @@ Hexmash.prototype.readerProgress = function(evt) {
 * File reader load event - pass the result buffer to be loaded
 */
 Hexmash.prototype.readerLoaded = function(evt) {
-    this.loadBuffer(evt.target.result);
+    this.buffer = evt.target.result;
+    this.currentLoadOffset = 0;
+    this.loadBuffer(this.buffer, 0, this.chunkSize);
+}
+
+/*
+* Load the next chunk of the file into the viewer
+*/
+Hexmash.prototype.continueLoading = function(evt) {
+    this.loadBuffer(this.buffer, this.currentLoadOffset, this.chunkSize);
 }
 
 /*
 * Take a buffer and load it into the viewer
 */
-Hexmash.prototype.loadBuffer = function(buffer) {
+Hexmash.prototype.loadBuffer = function(buffer, startOffset, length) {
     var bytes = new Uint8Array(buffer);
 
     var offsetHolder = document.createDocumentFragment();
     var hexHolder = document.createDocumentFragment();
     var rawHolder = document.createDocumentFragment();
 
-    var byteCount = bytes.length;
+    var byteCount = (startOffset + length < bytes.length) ? startOffset + length : bytes.length - startOffset;
 
     var hexRowString = "";
     var rawRowString = "";
-    for (var b=0; b<byteCount; b++)
+    for (var b=startOffset; b<byteCount; b++)
     {
         if (b % 16 == 0)
         {
@@ -171,12 +194,24 @@ Hexmash.prototype.loadBuffer = function(buffer) {
     this.viewerItems.offsetValue.appendChild(offsetHolder);
     this.viewerItems.hexValue.appendChild(hexHolder);
     this.viewerItems.rawValue.appendChild(rawHolder);
+
+    this.currentLoadOffset = startOffset + length;
+    // Not all bytes are shown, show continue loading link
+    if (this.currentLoadOffset < bytes.length) {
+        this.viewerItems.continueLink.style.display = "block";
+    }
+    else {
+        this.viewerItems.continueLink.style.display = "none";
+    }
 };
 
 /*
 * Append a row to each of the holders
 */
 Hexmash.prototype.addRow = function(offset, hexRowString, rawRowString, offsetHolder, hexHolder, rawHolder) {
+    // When continuing, this will get called with no data
+    if (hexRowString.length == 0) return;
+
     var offsetMod16 = offset % 16;
     var rowStart = offset - (offsetMod16 == 0 ? 16 : offsetMod16);
 

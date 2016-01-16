@@ -84,7 +84,7 @@ body {
     font-size: 16px;
 }
 
-#dropzone #browse {
+#dropzone #browse, #more {
     color: #00f;
     cursor: pointer;
 }
@@ -121,6 +121,11 @@ body {
 #raw_value {
     padding: 0 12px;
     cursor: pointer;
+}
+
+#more {
+    text-align: center;
+    display: none;
 }
 
 .file_info {
