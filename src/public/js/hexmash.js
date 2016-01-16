@@ -54,38 +54,9 @@ Hexmash.prototype.loadBuffer = function(buffer) {
     {
         if (b % 16 == 0)
         {
-            if (b != 0) {
-                var rowStart = b - 16;
-
-                // Add a new row to each section every 16 bytes
-                var offsetBreak = document.createElement("br");
-                var offset = String(rowStart);
-                while (offset.length < 9) {
-                    if (offset.length == 4) {
-                        offset = " " + offset;
-                    }
-                    offset = "0" + offset;
-                }
-                var offsetSpan = document.createElement("span");
-                offsetSpan.innerHTML = offset;
-                offsetHolder.appendChild(offsetSpan);
-                offsetHolder.appendChild(offsetBreak);
-
-
-                var hexRowSpan = document.createElement("span");
-                hexRowSpan.id = "hex" + rowStart;
-                hexRowSpan.innerHTML = hexRowString;
-                var hexBreak = document.createElement("br");
-                hexHolder.appendChild(hexRowSpan);
-                hexHolder.appendChild(hexBreak);
-
-                var rawRowSpan = document.createElement("span");
-                rawRowSpan.id = "raw" + rowStart;
-                rawRowSpan.innerHTML = rawRowString;
-                var rawBreak = document.createElement("br");
-                rawHolder.appendChild(rawRowSpan);
-                rawHolder.appendChild(rawBreak);
-
+            // Add a new row to each section every 16 bytes and when done
+            if (b !== 0) {
+                this.addRow(b, hexRowString, rawRowString, offsetHolder, hexHolder, rawHolder);
                 hexRowString = "";
                 rawRowString = "";
             }
@@ -118,12 +89,53 @@ Hexmash.prototype.loadBuffer = function(buffer) {
             text = ".";
         }
         rawRowString += text;
+
+        // Handle last row that may be partial
+        if (b == (byteCount - 1)) {
+            this.addRow(b, hexRowString, rawRowString, offsetHolder, hexHolder, rawHolder);
+        }
     }
 
     // Append the fragments to their respective divs
     this.viewerItems.offsetValue.appendChild(offsetHolder);
     this.viewerItems.hexValue.appendChild(hexHolder);
     this.viewerItems.rawValue.appendChild(rawHolder);
+};
+
+/*
+* Append a row to each of the holders
+*/
+Hexmash.prototype.addRow = function(offset, hexRowString, rawRowString, offsetHolder, hexHolder, rawHolder) {
+    var offsetMod16 = offset % 16;
+    var rowStart = offset - (offsetMod16 == 0 ? 16 : offsetMod16);
+
+    var offsetBreak = document.createElement("br");
+    var offsetString = String(rowStart);
+    while (offsetString.length < 9) {
+        if (offsetString.length == 4) {
+            offsetString = " " + offsetString;
+        }
+        offsetString = "0" + offsetString;
+    }
+    var offsetSpan = document.createElement("span");
+    offsetSpan.innerHTML = offsetString;
+    offsetHolder.appendChild(offsetSpan);
+    offsetHolder.appendChild(offsetBreak);
+
+
+    var hexRowSpan = document.createElement("span");
+    hexRowSpan.id = "hex" + rowStart;
+    hexRowSpan.innerHTML = hexRowString;
+    var hexBreak = document.createElement("br");
+    hexHolder.appendChild(hexRowSpan);
+    hexHolder.appendChild(hexBreak);
+
+    var rawRowSpan = document.createElement("span");
+    rawRowSpan.id = "raw" + rowStart;
+    rawRowSpan.innerHTML = rawRowString;
+    var rawBreak = document.createElement("br");
+    rawHolder.appendChild(rawRowSpan);
+    rawHolder.appendChild(rawBreak);
 };
 
 /*
@@ -137,7 +149,7 @@ Hexmash.prototype.onFileChange = function(evt) {
     if (fileCount > 0) {
         this.loadFile(files[0]);
     }
-}
+};
 
 /*
 * Drop event that get's the files passed in, currently only loads the first file
@@ -153,7 +165,7 @@ Hexmash.prototype.onDrop = function(evt) {
 
     // Prevent the browser from loading the file into the window
     this.preventDefault(evt);
-}
+};
 
 /*
 * Helper function to prevent default browser action and stop propagation
@@ -161,7 +173,7 @@ Hexmash.prototype.onDrop = function(evt) {
 Hexmash.prototype.preventDefault = function(evt) {
     evt.stopPropagation();
     evt.preventDefault();
-}
+};
 
 /**
 * Helper function to make element dropable - both the tool icon and the drop zone can
@@ -172,7 +184,7 @@ Hexmash.prototype.makeDropable = function(element) {
     element.addEventListener("dragexit", this.preventDefault, false);
     element.addEventListener("dragover", this.preventDefault, false);
     element.addEventListener("drop", this.onDrop.bind(this), false);
-}
+};
 
 /**
 * Collapse/expand the dropzone
@@ -184,8 +196,7 @@ Hexmash.prototype.showHideDropzone = function(evt) {
     else {
         this.loadingItems.targetDiv.classList.add('collapsed');
     }
-    
-}
+};
 
 /**
 * Initiate the loading of a file 
@@ -202,4 +213,4 @@ Hexmash.prototype.loadFile = function(file) {
     console.log("loading: " + file.name)
 
     this.reader.readAsArrayBuffer(file);
-}
+};
