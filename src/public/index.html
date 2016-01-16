@@ -6,14 +6,16 @@
 </head>
 <body>
     <div id="site">
-        <div id="toolbar">
-            <div id="file_info">
-                File: <span id="file_name" class="file_info">None</span>
-                Size: <span id="file_size" class="file_info">0</span> 
-                <span class="file_info">B</span>
-            </div>
-            <div id="file_controls">
-                <div id="tool_open"></div>
+        <div id="header">
+            <div id="toolbar">
+                <div id="file_info">
+                    File: <span id="file_name" class="file_info">None</span>
+                    Size: <span id="file_size" class="file_info">0</span> 
+                    <span class="file_info">B</span>
+                </div>
+                <div id="file_controls">
+                    <div id="tool_open"></div>
+                </div>
             </div>
         </div>
 
@@ -42,10 +44,10 @@
                 <div class="header">RAW</div>
                 <div id="raw_value"></div>
             </div>
-        </div>
 
-        <div style="clear:both"></div>
-        <div id="more">Loading more, click to force...</div>
+            <div style="clear:both"></div>
+        </div>
+        <div id="more">Loading...</div>
     </div>
 </body>
 <script type="text/javascript" src="js/hexmash.js"></script>
@@ -59,7 +61,7 @@
     // File loading elements
     var loadingItems = {};
     loadingItems.fileBrowser = document.getElementById('file_browse');
-    loadingItems.targetDiv = document.getElementById('dropzone');
+    loadingItems.dropzoneDiv = document.getElementById('dropzone');
     loadingItems.browseLink = document.getElementById('browse');
 
     // Viwer elements

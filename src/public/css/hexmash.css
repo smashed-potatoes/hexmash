@@ -7,7 +7,14 @@ body {
     margin: 0 auto;
 }
 
+#header {
+    min-height:64px
+}
+
 #toolbar {
+    position: fixed; 
+
+    width:741px;
     height: 60px;
     padding: 0 20px;
     

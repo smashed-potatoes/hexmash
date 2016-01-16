@@ -2,16 +2,17 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
     this.buffer = null;     // The file buffer
     this.chunkSize = 10240; // The number of bytes to load into the viewer at a time
     this.currentLoadOffset = 0;
+    this.dropzoneScrollOffset = 10;
 
     this.toolbarItems = toolbarItems;
     this.loadingItems = loadingItems;
     this.viewerItems  = viewerItems;
 
     // Hookup tools
-    this.toolbarItems.openTool.addEventListener("click", this.showHideDropzone.bind(this), false);
+    this.toolbarItems.openTool.addEventListener("click", this.loadingItems.fileBrowser.click.bind(this.loadingItems.fileBrowser), false);
 
     // Hookup drag and drop
-    this.makeDropable(this.loadingItems.targetDiv);
+    this.makeDropable(this.loadingItems.dropzoneDiv);
     this.makeDropable(this.toolbarItems.openTool);
 
     // Hookup the hovering
@@ -32,13 +33,19 @@ function Hexmash (toolbarItems, loadingItems, viewerItems) {
     this.loadingItems.fileBrowser.addEventListener("change", this.onFileChange.bind(this), false);
     this.loadingItems.browseLink.addEventListener("click", this.loadingItems.fileBrowser.click.bind(this.loadingItems.fileBrowser), false);
 
-    // Hookup the continue loading link and continuous loading
-    this.viewerItems.continueLink.addEventListener("click", this.continueLoading.bind(this));
+    // Hookup the scroll events (progressive loading and show/hide the dropzone)
     document.addEventListener("scroll", function(evt) {
         // If there is more to load and the user is 1 screen away from the bottom, start loading the next chunk
         if (this.buffer !== null && document.body.scrollHeight - window.scrollY < window.innerHeight * 2 
             && this.currentLoadOffset < this.buffer.byteLength) {
             this.continueLoading();
+        }
+
+        // Only show/hide if it all can't fit in the view
+        if (document.body.scrollHeight - this.loadingItems.dropzoneDiv.offsetHeight > window.innerHeight) {
+            if ((window.scrollY > this.dropzoneScrollOffset && this.dropzoneVisible()) || (window.scrollY < this.dropzoneScrollOffset && !this.dropzoneVisible())) {
+                this.showHideDropzone();
+            }
         }
     }.bind(this));
 
@@ -121,6 +128,8 @@ Hexmash.prototype.readerLoaded = function(evt) {
     this.buffer = evt.target.result;
     this.currentLoadOffset = 0;
     this.loadBuffer(this.buffer, 0, this.chunkSize);
+
+    if (window.scrollY < this.dropzoneScrollOffset) window.scrollTo(window.scrollX, this.dropzoneScrollOffset + 1);
 }
 
 /*
@@ -298,20 +307,26 @@ Hexmash.prototype.makeDropable = function(element) {
 * Collapse/expand the dropzone
 */
 Hexmash.prototype.showHideDropzone = function(evt) {
-    if (this.loadingItems.targetDiv.classList.contains('collapsed')) {
-        this.loadingItems.targetDiv.classList.remove('collapsed');
+    if (!this.dropzoneVisible()) {
+        this.loadingItems.dropzoneDiv.classList.remove('collapsed');
+        window.scrollTo(window.scrollX, 0);
     }
     else {
-        this.loadingItems.targetDiv.classList.add('collapsed');
+        this.loadingItems.dropzoneDiv.classList.add('collapsed');
     }
+};
+
+/**
+* Check whether the dropzone is shown
+*/
+Hexmash.prototype.dropzoneVisible = function() {
+    return !this.loadingItems.dropzoneDiv.classList.contains('collapsed');
 };
 
 /**
 * Initiate the loading of a file 
 */
 Hexmash.prototype.loadFile = function(file) {
-    this.loadingItems.targetDiv.classList.add('collapsed');
-
     this.viewerItems.offsetValue.innerHTML = "";
     this.viewerItems.hexValue.innerHTML = "";
     this.viewerItems.rawValue.innerHTML = "";
@@ -322,3 +337,4 @@ Hexmash.prototype.loadFile = function(file) {
 
     this.reader.readAsArrayBuffer(file);
 };
+
