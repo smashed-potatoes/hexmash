@@ -140,6 +140,11 @@ body {
     cursor: pointer;
 }
 
+#offset_value span, #hex_value span, #raw_value span {
+    display: inline-block;
+    height: 15px;
+}
+
 #more {
     text-align: center;
     display: none;
