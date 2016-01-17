@@ -1,5 +1,5 @@
 # Hexmash
-Hex viewer for your browser
+A dependency-free browser based hexviewer
 
 Getting Started
 ------------
@@ -11,4 +11,8 @@ None
 
 Usage
 ------------
-Drag and drop the file you'd like to view
+Open a file by browsing or dragging and dropping
+
+TODO
+------------
+- Only load the section(s) being viewed to improve performance with large files
