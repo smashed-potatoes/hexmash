@@ -1,6 +1,8 @@
 # Hexmash
 A dependency-free browser based hexviewer
 
+Project page: http://www.smashedtatoes.com/projects/hexmash/
+
 Getting Started
 ------------
 ### Dependencies
